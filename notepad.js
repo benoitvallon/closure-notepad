@@ -70,12 +70,37 @@ tutorial.notepad.Note.prototype.makeNoteDom = function() {
   // Add the note's DOM structure to the document.
   this.parent.appendChild(newNote);
 
-  // Attach the event handler that opens the editor.
+  // Attach the event handler that opens the editor. We need to preserve the meaning of 'this'
+  // when the handler is called.
   goog.events.listen(this.contentElement, goog.events.EventType.CLICK,
-      this.openEditor);
+      this.openEditor, false, this);
+
+  // Attach the event handler that save the note.
+  goog.events.listen(saveBtn, goog.events.EventType.CLICK,
+      this.save, false, this);
 
   // Attach the Zippy behavior.
   this.zippy = new goog.ui.Zippy(this.headerElement, this.contentContainer);
+};
+
+/**
+ * Event handler for clicks on the Save button. Sets the content of the Note
+ * to the text in the editor and hides the editor.
+ * @param {goog.events.Event} e The event object.
+ */
+tutorial.notepad.Note.prototype.save = function(e) {
+  this.content = this.editorElement.value;
+  this.closeEditor();
+};
+
+/**
+ * Updates the content of the content element, displays the content element,
+ * and hids the editor.
+ */
+tutorial.notepad.Note.prototype.closeEditor = function() {
+  this.contentElement.innerHTML = this.content;
+  this.contentElement.style.display = 'inline';
+  this.editorContainer.style.display = 'none';
 };
 
 /**
@@ -84,12 +109,7 @@ tutorial.notepad.Note.prototype.makeNoteDom = function() {
  * @param {goog.events.Event} e The event object.
  */
 tutorial.notepad.Note.prototype.openEditor = function(e) {
-  var elt = e.target;
-  var content = goog.dom.getTextContent(elt);
-  var editorContainer = goog.dom.getNextElementSibling(elt);
-  var editor = goog.dom.getFirstElementChild(editorContainer);
-
-  editor.innerHTML = content;
-  elt.style.display = 'none';
-  editorContainer.style.display = 'inline';
+  this.editorElement.value = this.content;
+  this.contentElement.style.display = 'none';
+  this.editorContainer.style.display = 'inline';
 };
